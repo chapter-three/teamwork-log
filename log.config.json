@@ -1,0 +1,17 @@
+{
+  "company": "[enter company name from teamwork]",
+  "key": "[enter your key from teamwork]",
+  "person-id": "[enter your person id from teamwork]",
+  "map": {
+    "project": {
+      "Project A": "00000",
+      "Project B": "11111",
+      "Project C": "22222",
+    },
+    "task": {
+      "Task A": "999999",
+      "Task B": "888888",
+      "Task C": "777777"
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "name": "teamworkpm-log",
+  "version": "0.0.1",
+  "description": "Take a CSV file and log its data as time entries in TeamWork.",
+  "main": "log",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "teamworkpm"
+  ],
+  "author": "Bala Bosch <bala.bosch@chapterthreellc.com> (http://chapterthree.com/)",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "~2.8.1",
+    "fast-csv": "~0.6.0",
+    "nconf": "~0.7.1",
+    "request": "~2.55.0"
+  }
+}
