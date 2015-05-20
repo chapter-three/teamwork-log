@@ -23,10 +23,17 @@ if (program.rawArgs.length <= 2) {
 }
 
 // Load configuration.
+var configfile = __dirname + '/log.config.json';
 var nconf = require('nconf');
 nconf
-  .use('file', { file: './log.config.json' })
+  .use('file', { file: configfile })
   .load();
+
+if (!Object.keys(nconf.get()).length) {
+  console.error('Could not read from file %s.', logfile);
+  console.log();
+  process.exit(1);
+}
 
 var company = nconf.get('company');
 var key = nconf.get('key');
