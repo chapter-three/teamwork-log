@@ -83,6 +83,7 @@ csv
   .on('data', function(data) {
     var date = new Date(data['Date']).format();
     var time = data['Duration'].split(':');
+    var task = data['Task'] + (data['Notes'] ? ': ' + data['Notes'] : '');
 
     if (map.project[data['Project']] == undefined) {
       console.error('No project ID was found for "%s". Add it to your log.config.json file.', data['Project']);
@@ -92,13 +93,13 @@ csv
     if (timeEntries[map.project[data['Project']]] == undefined) {
       timeEntries[map.project[data['Project']]] = {};
     }
-    if (timeEntries[map.project[data['Project']]][data['Task']] == undefined) {
-      timeEntries[map.project[data['Project']]][data['Task']] = {};
+    if (timeEntries[map.project[data['Project']]][task] == undefined) {
+      timeEntries[map.project[data['Project']]][task] = {};
     }
-    if (timeEntries[map.project[data['Project']]][data['Task']][date] == undefined) {
-      timeEntries[map.project[data['Project']]][data['Task']][date] = {
+    if (timeEntries[map.project[data['Project']]][task][date] == undefined) {
+      timeEntries[map.project[data['Project']]][task][date] = {
         'project-id': map.project[data['Project']],
-        'description': data['Task'],
+        'description': task,
         'person-id': personId,
         'date': date,
         // 'time': '10:10',
@@ -109,17 +110,17 @@ csv
     }
     else {
       // Update hours & minutes only.
-      timeEntries[map.project[data['Project']]][data['Task']][date].hours += parseInt(time[0]);
-      timeEntries[map.project[data['Project']]][data['Task']][date].minutes += parseInt(time[1]);
+      timeEntries[map.project[data['Project']]][task][date].hours += parseInt(time[0]);
+      timeEntries[map.project[data['Project']]][task][date].minutes += parseInt(time[1]);
 
       // Split minutes into hours and minutes.
-      var minutes = timeEntries[map.project[data['Project']]][data['Task']][date].minutes;
+      var minutes = timeEntries[map.project[data['Project']]][task][date].minutes;
       if (minutes >= 60) {
         var hours = Math.floor(minutes / 60);
         minutes = minutes % 60;
 
-        timeEntries[map.project[data['Project']]][data['Task']][date].hours += hours;
-        timeEntries[map.project[data['Project']]][data['Task']][date].minutes = minutes;
+        timeEntries[map.project[data['Project']]][task][date].hours += hours;
+        timeEntries[map.project[data['Project']]][task][date].minutes = minutes;
       }
     }
   })
