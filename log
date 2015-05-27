@@ -4,151 +4,177 @@
  * Parse a CSV timesheet from Tyme.
  */
 
-// Parse command line arguments.
-var program = require('commander');
-program
-  .version('0.0.1')
-  .option('-f, --file <path>', 'The full path and filename to the CSV export.')
-  .on('--help', function() {
-    console.log('  Examples:');
-    console.log();
-    console.log('    $ log --file 20150511-20150517.csv');
-    console.log();
-  })
-  .parse(process.argv);
+// Add custom date format.
+Date.prototype.format = function () {
+  var datestring = '';
+  datestring += this.getFullYear();
+  datestring += (this.getMonth() < 9 ? '0' : '') + (this.getMonth() + 1);
+  datestring += (this.getDate() < 10 ? '0' : '') + this.getDate();
 
-// Output help if no arguments were supplied.
-if (program.rawArgs.length <= 2) {
-  program.help();
+  return datestring;
 }
 
-// Load configuration.
-var configfile = __dirname + '/log.config.json';
-var nconf = require('nconf');
-nconf
-  .use('file', { file: configfile })
-  .load();
+var Log = Log || {};
 
-if (!Object.keys(nconf.get()).length) {
-  console.error('Could not read from file %s.', logfile);
-  console.log();
-  process.exit(1);
-}
+/*
+ * Returns a configuration object.
+ */
+Log.getConfig = function(configfile) {
+  var nconf = require('nconf');
+  nconf
+    .use('file', { file: configfile })
+    .load();
 
-var company = nconf.get('company');
-var key = nconf.get('key');
-var personId = nconf.get('person-id');
-var map = nconf.get('map');
-
-// Talk to teamwork API.
-var request = require('request');
-
-var base64 = new Buffer(key + ':xxx').toString('base64');
-
-var json = {
-  'time-entry': {
-    'description': '',
-    'person-id': '999',
-    'date': '20140330',
-    'time': '10:10',
-    'hours': '1',
-    'minutes': '15',
-    'isbillable': '1'
+  if (!Object.keys(nconf.get()).length) {
+    console.error('Could not read from file %s.', logfile);
+    console.log();
+    process.exit(1001);
   }
-};
 
-var host = 'https://' + company + '.teamworkpm.net';
-var pathProject = '/projects/{project-id}/time_entries.json';
-var pathTask = '/tasks/{task-id}/time_entries.json';
+  var config = nconf.get();
 
-var options = {
-	method: 'POST',
-	encoding: 'utf8',
-	followRedirect: true,
-	headers: {
-		'Authorization': 'BASIC ' + base64,
-		'Content-Type': 'application/json'
-	}
-};
-
-// Parse CSV file.
-var file = program.file;
-console.log('Parsing file %s...', file);
-
-var timeEntries = {};
-
-var csv = require('fast-csv');
-csv
-  .fromPath(file, {headers : true})
-  .on('data', function(data) {
-    var date = new Date(data['Date']).format();
-    var time = data['Duration'].split(':');
-    var task = data['Task'] + (data['Notes'] ? ': ' + data['Notes'] : '');
-
-    if (map.project[data['Project']] == undefined) {
-      console.error('No project ID was found for "%s". Add it to your log.config.json file.', data['Project']);
-      process.exit(1);
+  // Allow simple format in config, but convert to full format before use.
+  for (project in config.map.project) {
+    if (!(config.map.project[project] instanceof Object)) {
+      config.map.project[project] = {
+        'id': project,
+        'task': {}
+      }
     }
+  }
 
-    if (timeEntries[map.project[data['Project']]] == undefined) {
-      timeEntries[map.project[data['Project']]] = {};
+  return config;
+}
+
+/*
+ * Parses data from CSV.
+ */
+Log.validateData = function(data) {
+  // Ensure all fields exist.
+  var hasError = false;
+  var columns = ['date', 'notes', 'project', 'task', 'time'];
+
+  for (var i = 0, tot = columns.length; i < tot; i++) {
+    var column = columns[i];
+    if (data[config.map.csv[column]] == undefined) {
+      console.error('Column %s (%s) does not exist in the CSV file.', config.map.csv[column], column);
+      hasError = true;
     }
-    if (timeEntries[map.project[data['Project']]][task] == undefined) {
-      timeEntries[map.project[data['Project']]][task] = {};
-    }
-    if (timeEntries[map.project[data['Project']]][task][date] == undefined) {
-      timeEntries[map.project[data['Project']]][task][date] = {
-        'project-id': map.project[data['Project']],
-        'description': task,
-        'person-id': personId,
+  }
+  if (hasError) {
+    process.exit(1002);
+  }
+
+  if (config.map.project[data[config.map.csv.project]] == undefined) {
+    console.error('No project ID was found for "%s". Add it to your log.config.json file.', data[config.map.csv.project]);
+    process.exit(1003);
+  }
+
+  return true;
+}
+
+/*
+ * Parses data from CSV.
+ */
+Log.parseData = function(data, timeEntries) {
+  var date = new Date(data[config.map.csv.date]).format();
+  var notes = data[config.map.csv.notes];
+  var project = data[config.map.csv.project];
+  var task = data[config.map.csv.task];
+  var time = data[config.map.csv.time].split(':');
+
+  var description = task + (notes ? ': ' + notes : '');
+
+  var configProject = config.map.project[project];
+
+  if (timeEntries[project] == undefined) {
+    timeEntries[project] = {};
+  }
+  if (timeEntries[project][description] == undefined) {
+    timeEntries[project][description] = {};
+  }
+  if (timeEntries[project][description][date] == undefined) {
+    timeEntries[project][description][date] = {
+      json: {
+        'project-id': configProject.id,
+        'description': description,
+        'person-id': config.personId,
         'date': date,
         // 'time': '10:10',
         'hours': +parseInt(time[0]),
         'minutes': +parseInt(time[1]),
         'isbillable': true
+      },
+      data: {
+        project: project,
+        projectId: configProject.id,
+        task: task,
+        taskId: configProject.task[task] ? configProject.task[task] : null
       }
     }
-    else {
-      // Update hours & minutes only.
-      timeEntries[map.project[data['Project']]][task][date].hours += parseInt(time[0]);
-      timeEntries[map.project[data['Project']]][task][date].minutes += parseInt(time[1]);
+  }
+  else {
+    // Update hours & minutes only.
+    timeEntries[project][description][date].json.hours += parseInt(time[0]);
+    timeEntries[project][description][date].json.minutes += parseInt(time[1]);
 
-      // Split minutes into hours and minutes.
-      var minutes = timeEntries[map.project[data['Project']]][task][date].minutes;
-      if (minutes >= 60) {
-        var hours = Math.floor(minutes / 60);
-        minutes = minutes % 60;
+    // Split minutes into hours and minutes.
+    var minutes = timeEntries[project][description][date].json.minutes;
+    if (minutes >= 60) {
+      var hours = Math.floor(minutes / 60);
+      minutes = minutes % 60;
 
-        timeEntries[map.project[data['Project']]][task][date].hours += hours;
-        timeEntries[map.project[data['Project']]][task][date].minutes = minutes;
-      }
+      timeEntries[project][description][date].json.hours += hours;
+      timeEntries[project][description][date].json.minutes = minutes;
     }
-  })
-  .on('end', function(){
-    console.log('Parsing completed.');
-    console.log();
-    console.log('Logging time...');
+  }
+}
 
-    for (projectId in timeEntries)  {
-      for (task in timeEntries[projectId])  {
-        for (date in timeEntries[projectId][task])  {
-          var timeEntry = timeEntries[projectId][task][date];
-          var json = {
-            'time-entry': timeEntry
-          };
+/*
+ * Logs time entries.
+ */
+Log.logTime = function(timeEntries) {
+  console.log('Logging time...');
 
-          if (map.task[timeEntry.description] == undefined) {
-            // No teamwork task associated with this time entry.
-            options.uri = host + pathProject.replace('{project-id}', projectId);
-          }
-          else {
-            // No teamwork task associated with this time entry.
-            options.uri = host + pathTask.replace('{task-id}', map.task[timeEntry.description]);
-          }
-          options.json = json;
+  // Talk to teamwork API.
+  var request = require('request');
 
-          console.log('Logging %s:%s hrs for task %s.', timeEntry.hours, (timeEntry.minutes < 10 ? '0' : '') + timeEntry.minutes, timeEntry.description);
+  var base64 = new Buffer(config.key + ':xxx').toString('base64');
 
+  var host = 'https://' + config.company + '.teamworkpm.net';
+  var pathProject = '/projects/{project-id}/time_entries.json';
+  var pathTask = '/tasks/{task-id}/time_entries.json';
+
+  var options = {
+    method: 'POST',
+    encoding: 'utf8',
+    followRedirect: true,
+    headers: {
+      'Authorization': 'BASIC ' + base64,
+      'Content-Type': 'application/json'
+    }
+  };
+
+  for (projectId in timeEntries)  {
+    for (description in timeEntries[projectId])  {
+      for (date in timeEntries[projectId][description])  {
+        var timeEntry = timeEntries[projectId][description][date];
+
+        if (timeEntry.data.taskId == null) {
+          // No teamwork task associated with this time entry.
+          options.uri = host + pathProject.replace('{project-id}', timeEntry.data.projectId);
+        }
+        else {
+          // No teamwork task associated with this time entry.
+          options.uri = host + pathTask.replace('{task-id}', timeEntry.data.taskId);
+        }
+        options.json = {
+          'time-entry': timeEntry.json
+        };
+
+        console.log('Logging %s:%s hrs for project %s, task %s.', timeEntry.json.hours, (timeEntry.json.minutes < 10 ? '0' : '') + timeEntry.json.minutes, timeEntry.data.project, timeEntry.json.description);
+
+        if (!program.simulate) {
           request(options, function (error, response, body) {
             if (error) {
               return console.log('ERROR:', error);
@@ -167,24 +193,64 @@ csv
         }
       }
     }
-    console.log('Logging completed.');
+  }
+  console.log('Logging completed.');
+  console.log();
+}
+
+
+// Parse command line arguments.
+var program = require('commander');
+program
+  .version('0.0.1')
+  .option('-f, --file <path>', 'The full path and filename to the CSV export.')
+  .option('-s, --simulate', 'Simulate logging time.')
+  .on('--help', function() {
+    console.log('  Examples:');
     console.log();
+    console.log('    $ log --file 20150511-20150517.csv');
+    console.log();
+  })
+  .parse(process.argv);
+
+// Output help if no arguments were supplied.
+if (program.rawArgs.length <= 2) {
+  program.help();
+}
+
+// Check if we're running in simulated mode.
+if (program.simulate) {
+  console.log('Running in simulated mode.');
+  console.log();
+}
+
+// Load configuration data.
+var config = Log.getConfig(__dirname + '/log.config.json');
+
+// Prepare time entries.
+var timeEntries = {};
+
+// Parse CSV file.
+var file = program.file;
+console.log('Parsing file %s...', file);
+
+var csv = require('fast-csv');
+csv
+  .fromPath(file, {headers : true})
+  .validate(Log.validateData)
+  .on('data', function(data) {
+    Log.parseData(data, timeEntries);
+  })
+  .on('end', function() {
+    console.log('Parsing completed.');
+    console.log();
+
+    Log.logTime(timeEntries);
   })
   .on('error', function(error) {
     // @todo This doesn't get triggered on file open errors.
     console.error('Could not read from file %s.', file);
     console.error(error.message);
     console.log();
-    process.exit(1);
+    process.exit(1004);
   });
-
-
-// Add custom date format.
-Date.prototype.format = function () {
-  var datestring = '';
-  datestring += this.getFullYear();
-  datestring += (this.getMonth() < 9 ? '0' : '') + (this.getMonth() + 1);
-  datestring += (this.getDate() < 10 ? '0' : '') + this.getDate();
-
-  return datestring;
-}

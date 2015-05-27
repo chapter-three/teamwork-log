@@ -5,13 +5,22 @@
   "map": {
     "project": {
       "Project A": "00000",
-      "Project B": "11111",
-      "Project C": "22222",
+      "Project B": {
+        "id": "11111",
+        "task": {
+          "Task A": "999999",
+          "Task B": "888888",
+          "Task C": "777777"
+        }
+      },
+      "Project C": "22222"
     },
-    "task": {
-      "Task A": "999999",
-      "Task B": "888888",
-      "Task C": "777777"
+    "csv": {
+      "date": "Date",
+      "notes": "Notes",
+      "project": "Project",
+      "task": "Task",
+      "time": "Duration"
     }
   }
 }
