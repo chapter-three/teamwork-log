@@ -37,7 +37,7 @@ Log.getConfig = function(configfile) {
   for (project in config.map.project) {
     if (!(config.map.project[project] instanceof Object)) {
       config.map.project[project] = {
-        'id': project,
+        'id': config.map.project[project],
         'task': {}
       }
     }
