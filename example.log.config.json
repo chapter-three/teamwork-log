@@ -1,7 +1,7 @@
 {
   "company": "[enter company name from teamwork]",
   "key": "[enter your key from teamwork]",
-  "person-id": "[enter your person id from teamwork]",
+  "personId": "[enter your person id from teamwork]",
   "map": {
     "project": {
       "Project A": "00000",
