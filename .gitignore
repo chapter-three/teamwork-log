@@ -1,6 +1,10 @@
+# Your config file
+log.config.json
+
 # Logs
 logs
 *.log
+*.csv
 
 # Runtime data
 pids
