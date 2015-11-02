@@ -2,6 +2,11 @@
 
 Take a CSV file and log its data as time entries in TeamWork.
 
+# Installation
+
+- Checkout this repository: `git clone git@github.com:chapter-three/teamwork-log.git && cd teamwork-log`
+- Install dependencies: `npm install`
+
 # Configuration
 ### Create the config file
 
@@ -12,7 +17,7 @@ Take a CSV file and log its data as time entries in TeamWork.
 
 - Add your company id into the `company` field, which is the subdomain of your Teamwork URL
     - If your Teamwork url is `http://acme.teamworkpm.net/` then your company id is `acme`
-- Log into Teamwork and get your "API Authentication Token" found within your account details section
+- In order to get an API key of *Teamwork*, go to your *Teamwork* account and hit your user picture. **Select Edit my details**. [@see trackduck](http://help.trackduck.com/2014/11/teamwork-integration-setup/)
     - Enter this value into the `key` field
 - To get your Teamwork user id, hover over your user photo/picture
     - Look at your browser status bar
