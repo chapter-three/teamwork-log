@@ -52,7 +52,7 @@ Log.getConfig = function(configfile) {
 Log.validateData = function(data) {
   // Ensure all fields exist.
   var hasError = false;
-  var columns = ['date', 'notes', 'project', 'task', 'time'];
+  var columns = ['date', 'notes', 'project', 'time'];
 
   for (var i = 0, tot = columns.length; i < tot; i++) {
     var column = columns[i];
@@ -83,7 +83,12 @@ Log.parseData = function(data, timeEntries) {
   var task = data[config.map.csv.task];
   var time = data[config.map.csv.time].split(':');
 
-  var description = task + (notes ? ': ' + notes : '');
+  var description = '';
+  if (task) {
+    if (notes) description = task + ': ' + notes;
+    else description = task;
+  }
+  else if (notes) description = notes;
 
   var configProject = config.map.project[project];
 
@@ -172,7 +177,7 @@ Log.logTime = function(timeEntries) {
           'time-entry': timeEntry.json
         };
 
-        console.log('Logging %s:%s hrs for project %s, task %s.', timeEntry.json.hours, (timeEntry.json.minutes < 10 ? '0' : '') + timeEntry.json.minutes, timeEntry.data.project, timeEntry.json.description);
+        console.log('Logging %s:%s hrs for project %s, description: "%s".', timeEntry.json.hours, (timeEntry.json.minutes < 10 ? '0' : '') + timeEntry.json.minutes, timeEntry.data.project, timeEntry.json.description);
 
         if (!program.simulate) {
           request(options, function (error, response, body) {
