@@ -1,10 +1,21 @@
+--------------------------------------------------------------------------------
+-- This script uses Tyme2's AppleScript API to export today's data,
+-- then uses Bala's log script to push that data to Teamwork.
+--
+-- This file needs to be in the same directory as Bala's log script.
+--
+-- To use (from the command line):
+--    $ osascript tyme2-log-today.applescript
+--------------------------------------------------------------------------------
+
+
 global _filename
 
 on run
   tell application "Finder"
     -- Get this script's parent directory
     set _path to (container of (path to me)) as text
-    set _filename to _path & "todays-log.csv"
+    set _filename to _path & "tyme2-log-today.csv"
     -- Convert the filename to "/path/to/file" format
     set _filename to POSIX path of _filename
   end tell
@@ -37,7 +48,7 @@ on run
   end tell
 
   -- Send this newly created csv to the awesome Teamwork logger that Bala wrote
-  set _results to (do shell script "./log -f todays-log.csv")
+  set _results to (do shell script "./log -f tyme2-log-today.csv")
   my printResults(_results)
 end run
 
@@ -86,8 +97,7 @@ end fieldsFromRecord
 on getDuration(_duration)
   -- _duration is in seconds
   set _hours to my floor(_duration / 60 / 60)
-  -- set _minutes to my floor(((_duration / 60 / 60) - _hours) * 60)
-  set _minutes to round (((_duration / 60 / 60) - _hours) * 60)
+  set _minutes to round(((_duration / 60 / 60) - _hours) * 60)
   return my numToStr(_hours) & ":" & my numToStr(_minutes)
 end getDuration
 
