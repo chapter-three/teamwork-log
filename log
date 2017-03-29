@@ -4,6 +4,10 @@
  * Parse a CSV timesheet from Tyme.
  */
 
+function isNumeric(n) {
+  return !isNaN(parseFloat(n)) && isFinite(n);
+}
+
 // Add custom date format.
 Date.prototype.format = function () {
   var datestring = '';
@@ -12,7 +16,7 @@ Date.prototype.format = function () {
   datestring += (this.getDate() < 10 ? '0' : '') + this.getDate();
 
   return datestring;
-}
+};
 
 var Log = Log || {};
 
@@ -32,6 +36,7 @@ Log.getConfig = function(configfile) {
   }
 
   var config = nconf.get();
+  var project;
 
   // Allow simple format in config, but convert to full format before use.
   for (project in config.map.project) {
@@ -44,10 +49,10 @@ Log.getConfig = function(configfile) {
   }
 
   return config;
-}
+};
 
 /*
- * Parses data from CSV.
+ * Validates data from CSV.
  */
 Log.validateData = function(data) {
   // Ensure all fields exist.
@@ -56,7 +61,7 @@ Log.validateData = function(data) {
 
   for (var i = 0, tot = columns.length; i < tot; i++) {
     var column = columns[i];
-    if (data[config.map.csv[column]] == undefined) {
+    if (data[config.map.csv[column]] === undefined) {
       console.error('Column %s (%s) does not exist in the CSV file.', config.map.csv[column], column);
       hasError = true;
     }
@@ -65,13 +70,13 @@ Log.validateData = function(data) {
     process.exit(1002);
   }
 
-  if (config.map.project[data[config.map.csv.project]] == undefined) {
+  if (config.map.project[data[config.map.csv.project]] === undefined) {
     console.error('No project ID was found for "%s". Add it to your log.config.json file.', data[config.map.csv.project]);
     process.exit(1003);
   }
 
   return true;
-}
+};
 
 /*
  * Parses data from CSV.
@@ -92,13 +97,13 @@ Log.parseData = function(data, timeEntries) {
 
   var configProject = config.map.project[project];
 
-  if (timeEntries[project] == undefined) {
+  if (timeEntries[project] === undefined) {
     timeEntries[project] = {};
   }
-  if (timeEntries[project][description] == undefined) {
+  if (timeEntries[project][description] === undefined) {
     timeEntries[project][description] = {};
   }
-  if (timeEntries[project][description][date] == undefined) {
+  if (timeEntries[project][description][date] === undefined) {
     timeEntries[project][description][date] = {
       json: {
         'project-id': configProject.id,
@@ -133,7 +138,7 @@ Log.parseData = function(data, timeEntries) {
       timeEntries[project][description][date].json.minutes = minutes;
     }
   }
-}
+};
 
 /*
  * Logs time entries.
@@ -160,17 +165,30 @@ Log.logTime = function(timeEntries) {
     }
   };
 
+  var projectId,
+    description,
+    date,
+    descriptionArray;
+
   for (projectId in timeEntries)  {
     for (description in timeEntries[projectId])  {
       for (date in timeEntries[projectId][description])  {
         var timeEntry = timeEntries[projectId][description][date];
 
-        if (timeEntry.data.taskId == null) {
-          // No teamwork task associated with this time entry.
-          options.uri = host + pathProject.replace('{project-id}', timeEntry.data.projectId);
+        if (timeEntry.data.taskId === null) {
+          // See if the task description includes a taskId.
+          descriptionArray = description.split(' - ');
+          if (descriptionArray.length > 1 && isNumeric(descriptionArray[0].trim())) {
+            // A teamwork task is associated with this time entry.
+            options.uri = host + pathTask.replace('{task-id}', descriptionArray[0].trim());
+          }
+          else {
+            // No teamwork task associated with this time entry.
+            options.uri = host + pathProject.replace('{project-id}', timeEntry.data.projectId);
+          }
         }
         else {
-          // No teamwork task associated with this time entry.
+          // A teamwork task is associated with this time entry.
           options.uri = host + pathTask.replace('{task-id}', timeEntry.data.taskId);
         }
         options.json = {
@@ -201,7 +219,7 @@ Log.logTime = function(timeEntries) {
   }
   console.log('Logging completed.');
   console.log();
-}
+};
 
 
 // Parse command line arguments.
