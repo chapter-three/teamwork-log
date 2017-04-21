@@ -181,6 +181,7 @@ Log.logTime = function(timeEntries) {
           if (descriptionArray.length > 1 && isNumeric(descriptionArray[0].trim())) {
             // A teamwork task is associated with this time entry.
             options.uri = host + pathTask.replace('{task-id}', descriptionArray[0].trim());
+            timeEntry.json.description = descriptionArray[1].trim();
           }
           else {
             // No teamwork task associated with this time entry.
