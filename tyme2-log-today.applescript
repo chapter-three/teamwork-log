@@ -32,7 +32,7 @@ on run
   set _endDate to _startDate + (1 * days) - 1
 
   -- Create the header row
-  set _headerFields to {"date", "project", "task", "amount", "note"}
+  set _headerFields to {"Date", "Project", "Task", "Duration", "Notes"}
   set _headerLine to my lineFromFields(_headerFields)
   my writeLine(_headerLine)
 
@@ -48,7 +48,8 @@ on run
   end tell
 
   -- Send this newly created csv to the awesome Teamwork logger that Bala wrote
-  set _results to (do shell script "./log -f tyme2-log-today.csv")
+  set UnixPath to POSIX path of ((path to me as text) & "::")
+  set _results to (do shell script {"cd " & UnixPath & "&& ./log -f tyme2-log-today.csv"})
   my printResults(_results)
 end run
 
