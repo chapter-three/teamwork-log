@@ -32,7 +32,8 @@ on run
   set _endDate to _startDate + (1 * days) - 1
 
   -- Create the header row
-  set _headerFields to {"Date", "Project", "Task", "Duration", "Notes"}
+  -- Requires `csv` to be configured in `log.config.json`. See: `example.log.config.json`
+  set _headerFields to {"date", "project", "task", "amount", "note"}
   set _headerLine to my lineFromFields(_headerFields)
   my writeLine(_headerLine)
 
