@@ -14,10 +14,12 @@
   "dependencies": {
     "chalk": "^2.1.0",
     "clear": "0.0.1",
+    "cli-table2": "^0.2.0",
     "clui": "^0.3.6",
     "commander": "^2.11.0",
     "fast-csv": "^0.6.0",
     "figlet": "^1.2.0",
+    "moment": "^2.19.1",
     "nconf": "^0.7.2",
     "request": "^2.83.0",
     "tyme2": "github:patrickkahl/tyme2#master"

@@ -8,11 +8,12 @@
 const chalk       = require('chalk');
 const clear       = require('clear');
 const CLI         = require('clui');
+const table       = require('cli-table2');
 const figlet      = require('figlet');
 const Spinner     = CLI.Spinner;
 const tyme        = require('tyme2');
 const program     = require('commander');
-
+const moment      = require('moment');
 /**
  * Defines the command callback for this file.
  */
@@ -39,9 +40,26 @@ const main = () => {
             .then(taskRecords => {
               spinner.stop();
 
-              console.log('Projects: ', projects.map(x => x.name), "\n");
-              console.log('Tasks: ', tasks.map(x => x.name), "\n");
-              console.log('Task Records: ', taskRecords.map(x => x.note), "\n");
+              // console.log('Projects: ', projects.map(x => x.name), "\n");
+              // console.log('Tasks: ', tasks.map(x => x.name), "\n");
+
+              let lime_log_table = new table({
+                head: ['Date', "Project", "Task", "Duration", 'Notes'], colWidths: [20, 20]
+              });
+
+              taskRecords.forEach( x => {
+                let m = moment(x.timestart);
+                lime_log_table.push([
+                  m.format("MM/DD/YYYY"),
+                  projects.find(p => p.id == x.relatedprojectid).name,
+                  tasks.find(t => t.id == x.relatedtaskid).name,
+                  x.timedduration,
+                  x.note,
+                ]);
+              });
+
+              console.log(chalk.green("Hours last week."));
+              console.log(lime_log_table.toString());
             });
         });
     });
