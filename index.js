@@ -15,6 +15,7 @@ const tyme        = require('tyme2');
 const program     = require('commander');
 const moment      = require('moment');
 const inquirer    = require('inquirer');
+
 /**
  * Defines the command callback for this file.
  */
@@ -27,11 +28,11 @@ const main = () => {
   );
 
   // Start the Spinner.
-  let spinner = new Spinner('Processing...  ', ['⣾','⣽','⣻','⢿','⡿','⣟','⣯','⣷']);
+  let spinner = new Spinner('Retrieving time records...  ', ['⣾','⣽','⣻','⢿','⡿','⣟','⣯','⣷']);
   spinner.start();
 
   // Function to convert seconds to duration in a time format (1:00 for 1 hour).
-  let durationFormSeconds = s => Math.floor(s/3600) + ":" + ("0" + ((s - (Math.floor(s/3600)*3600))/60)).slice(-2);
+  let durationFromSeconds = s => Math.floor(s/3600) + ":" + ("0" + ((s - (Math.floor(s/3600)*3600))/60)).slice(-2);
 
   tyme
     .projects()
@@ -49,7 +50,7 @@ const main = () => {
                 "project":  projects.find(p => p.id == r.relatedprojectid).name,
                 "task":     tasks.find(t => t.id == r.relatedtaskid).name,
                 "hours":    (r.timedduration/3600).toFixed(2),
-                "time":     durationFormSeconds(r.timedduration),
+                "time":     durationFromSeconds(r.timedduration),
                 "note":     r.note
               };});
 
