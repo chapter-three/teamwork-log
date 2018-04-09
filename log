@@ -8,10 +8,6 @@ const config = Log.getConfig(__dirname + '/log.config.json');
  * Parse a CSV timesheet from Tyme.
  */
 
-function isNumeric(n) {
-  return !isNaN(parseFloat(n)) && isFinite(n);
-}
-
 // Parse command line arguments.
 var program = require('commander');
 program

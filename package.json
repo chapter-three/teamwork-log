@@ -20,6 +20,7 @@
     "fast-csv": "^0.6.0",
     "figlet": "^1.2.0",
     "inquirer": "^3.3.0",
+    "isnumeric": "^0.3.3",
     "moment": "^2.19.1",
     "nconf": "^0.7.2",
     "request": "^2.83.0",
