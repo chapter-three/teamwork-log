@@ -1,4 +1,5 @@
-#! /usr/local/bin/node
+#! /usr/bin/env node
+
 const Log = require('./lib/tw-log')
 
 // Load configuration data.
