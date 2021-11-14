@@ -1,6 +1,6 @@
 {
   "name": "teamworkpm-log",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Take a CSV file and log its data as time entries in TeamWork.",
   "main": "log.js",
   "type": "module",
