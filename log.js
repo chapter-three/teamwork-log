@@ -4,7 +4,6 @@ import { existsSync } from 'fs';
 import path from 'path'
 import { Command } from 'commander';
 import { parseFile } from '@fast-csv/parse';
-// import { fromPath } from 'fast-csv';
 import { getConfig, validateData, parseData, logTime } from './lib/tw-log.js';
 
 // Load configuration data.
