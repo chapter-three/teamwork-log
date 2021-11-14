@@ -2,28 +2,28 @@
   "name": "teamworkpm-log",
   "version": "0.0.1",
   "description": "Take a CSV file and log its data as time entries in TeamWork.",
-  "main": "log",
+  "main": "log.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "npx eslint '*.js'",
+    "lint:fix": "npm run lint -- --fix",
+    "prettier": "npx prettier '*.js' --check",
+    "prettier:fix": "npm run prettier -- --write"
   },
   "keywords": [
     "teamworkpm"
   ],
-  "author": "Bala Bosch <bala.bosch@chapterthreellc.com> (http://chapterthree.com/)",
+  "author": "All of us at https://www.chapterthree.com",
   "license": "MIT",
   "dependencies": {
-    "chalk": "^2.1.0",
-    "clear": "0.0.1",
-    "cli-table2": "^0.2.0",
-    "clui": "^0.3.6",
-    "commander": "^2.11.0",
-    "fast-csv": "^0.6.0",
-    "figlet": "^1.2.0",
-    "inquirer": "^3.3.0",
+    "@fast-csv/parse": "^4.3.6",
+    "commander": "^8.3.0",
     "isnumeric": "^0.3.3",
-    "moment": "^2.24.0",
-    "nconf": "^0.7.2",
-    "request": "^2.88.0",
-    "tyme2": "github:patrickkahl/tyme2#master"
+    "nconf": "^0.11.3",
+    "request": "^2.88.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.2.0",
+    "prettier": "2.4.1"
   }
 }
